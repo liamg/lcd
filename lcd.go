@@ -20,6 +20,15 @@ type pins struct {
 	data           []rpio.Pin
 }
 
+func (p *pins) init() {
+	p.registerSelect.Output()
+	p.readWrite.Output()
+	p.enable.Output()
+	for _, data := range p.data {
+		data.Output()
+	}
+}
+
 var openCount int
 var openMu sync.Mutex
 
@@ -81,33 +90,44 @@ func (l *LCD) Close() error {
 }
 
 func (l *LCD) init() {
+
+	l.pins.init()
+
 	l.pins.registerSelect.Low()
 	l.pins.readWrite.Low()
 
-	// -> 0x30
-	l.pins.data[0].Low()
-	l.pins.data[1].Low()
-	l.pins.data[2].High()
-	l.pins.data[3].High()
+	l.execInstruction(0x00, 0b00110000)
 
-	time.Sleep(time.Millisecond * 5)
+	time.Sleep(time.Millisecond * 10)
 
-	// -> 0x30
-	l.pins.data[0].Low()
-	l.pins.data[1].Low()
-	l.pins.data[2].High()
-	l.pins.data[3].High()
+	l.execInstruction(0x00, 0b00110000)
 
-	time.Sleep(time.Microsecond * 150)
+	time.Sleep(time.Microsecond * 200)
 
-	// -> 0x30
-	l.pins.data[0].Low()
-	l.pins.data[1].Low()
-	l.pins.data[2].High()
-	l.pins.data[3].High()
+	l.execInstruction(0x00, 0b00110000)
 
-	// TODO: set config up
+	time.Sleep(time.Microsecond * 200)
 
+	// Function Set
+	var fsParam byte
+	if len(l.pins.data) == 8 {
+		fsParam |= 0b10000
+	}
+	// 2 lines
+	fsParam |= 0b1000
+	l.execInstruction(insSetFunction, fsParam)
+
+	// Display OFF
+	l.execInstruction(insSetDisplayMode, 0x0)
+
+	// Clear
+	l.execInstruction(insClearDisplay, 0x0)
+
+	// Entry mode
+	l.execInstruction(insEntryModeSet, 0b010)
+
+	// Turn on!
+	l.execInstruction(insSetDisplayMode, 0b100)
 }
 
 func (l *LCD) clearDisplay() {
@@ -123,16 +143,28 @@ func (l *LCD) setCGRAMAddress(address byte) {
 }
 
 func (l *LCD) waitUntilFree() {
-	l.pins.data[0].High()       // set db7 for bf
+
+	for _, pin := range l.pins.data {
+		pin.Low()
+	}
+
+	db7 := l.pins.data[len(l.pins.data)-1]
+
 	l.pins.registerSelect.Low() // ins mode
 	l.pins.readWrite.High()     // read
+
 	for {
-		if l.pins.data[0].Read() == rpio.Low {
+		// keep firing the bf read instruction until the flag is unset
+		db7.Output()
+		db7.High()
+		l.pulseEnable()
+		db7.Input()
+		if db7.Read() == rpio.Low {
 			break
 		}
-		// keep firing the bf read instruction until the flag is unset
-		l.pulseEnable()
 	}
+
+	db7.Output()
 	//reset rw to default to write
 	l.pins.readWrite.Low()
 }
@@ -140,7 +172,7 @@ func (l *LCD) waitUntilFree() {
 func (l *LCD) execInstruction(ins instruction, data byte) {
 	l.waitUntilFree()
 	l.pins.registerSelect.Low()
-	data = byte(ins) | (data & (byte(ins) - 1))
+	data = byte(ins) | data
 	l.writeRaw(data)
 }
 
@@ -195,10 +227,6 @@ func (l *LCD) pulseEnable() {
 	l.pins.enable.Low()
 }
 
-func (l *LCD) ShowCursor() {
-
-}
-
-func (l *LCD) setDisplayMode() {
-
+func (l *LCD) WriteLines(lines ...string) {
+	l.writeData(0x65)
 }
