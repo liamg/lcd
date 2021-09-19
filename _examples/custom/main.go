@@ -16,9 +16,7 @@ func main() {
 	rw.Output()
 	rw.Low()
 
-	lcd, err := lcd.New(
-		16,
-		2,
+	lcd, err := lcd.New1602(
 		rpio.Pin(24),                                         // RS
 		rpio.Pin(25),                                         // E
 		rpio.Pin(5), rpio.Pin(6), rpio.Pin(13), rpio.Pin(19), // DATA
