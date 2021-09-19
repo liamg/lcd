@@ -45,6 +45,16 @@ const (
 	insSetDDRAMAddress
 )
 
+const (
+	addrLine1 = 0x00
+	addrLine2 = 0x40
+)
+
+const (
+	timeExecutionDelay = time.Microsecond * 80
+	timeClearDelay     = time.Millisecond * 10
+)
+
 func Connect(registerSelect, readWrite, enable byte, data ...byte) (*LCD, error) {
 
 	if len(data) != 4 && len(data) != 8 {
@@ -89,39 +99,44 @@ func (l *LCD) Close() error {
 	return nil
 }
 
+func (l *LCD) init4Bit() {
+	l.write4BitHigh(0b00100000) // 4-bit mode - N/F flags ignored
+
+	// from here we can send high then low nibble
+	l.write4Bit(0b00101000) // 4 bit, 2 lines, 5x8
+}
+
+func (l *LCD) init8Bit() {
+	l.write8Bit(0b00111000) // 8-bit mode, 2 lines, 5x8
+}
+
 func (l *LCD) init() {
 
 	l.pins.init()
 
-	l.pins.registerSelect.Low()
-	l.pins.readWrite.Low()
+	l.pins.registerSelect.Low() // instruction
+	l.pins.readWrite.Low()      // write
 
-	l.execInstruction(0x00, 0b00110000)
-
+	l.write4BitHigh(0b00110000)
 	time.Sleep(time.Millisecond * 10)
 
-	l.execInstruction(0x00, 0b00110000)
-
+	l.write4BitHigh(0b00110000)
 	time.Sleep(time.Microsecond * 200)
 
-	l.execInstruction(0x00, 0b00110000)
+	l.write4BitHigh(0b00110000)
+	time.Sleep(time.Millisecond * 10)
 
-	time.Sleep(time.Microsecond * 200)
-
-	// Function Set
-	var fsParam byte
-	if len(l.pins.data) == 8 {
-		fsParam |= 0b10000
+	if len(l.pins.data) == 4 {
+		l.init4Bit()
+	} else {
+		l.init8Bit()
 	}
-	// 2 lines
-	fsParam |= 0b1000
-	l.execInstruction(insSetFunction, fsParam)
 
 	// Display OFF
 	l.execInstruction(insSetDisplayMode, 0x0)
 
 	// Clear
-	l.execInstruction(insClearDisplay, 0x0)
+	l.Clear()
 
 	// Entry mode
 	l.execInstruction(insEntryModeSet, 0b010)
@@ -130,8 +145,24 @@ func (l *LCD) init() {
 	l.execInstruction(insSetDisplayMode, 0b100)
 }
 
-func (l *LCD) clearDisplay() {
-	l.execInstruction(insSetDDRAMAddress, 0)
+func (l *LCD) Clear() {
+	l.execInstruction(insClearDisplay, 0)
+	time.Sleep(timeClearDelay)
+}
+
+func (l *LCD) MoveTo(line uint8, col uint8) error {
+	if col >= 16 {
+		return fmt.Errorf("column number must be in the range 0-15")
+	}
+	if line > 1 {
+		return fmt.Errorf("line number must be in the range 0-1")
+	}
+	var address byte
+	if line == 1 {
+		address = addrLine2
+	}
+	l.setDDRAMAddress(address + col)
+	return nil
 }
 
 func (l *LCD) setDDRAMAddress(address byte) {
@@ -143,6 +174,10 @@ func (l *LCD) setCGRAMAddress(address byte) {
 }
 
 func (l *LCD) waitUntilFree() {
+
+	// TODO
+	time.Sleep(timeExecutionDelay)
+	return
 
 	for _, pin := range l.pins.data {
 		pin.Low()
@@ -157,7 +192,7 @@ func (l *LCD) waitUntilFree() {
 		// keep firing the bf read instruction until the flag is unset
 		db7.Output()
 		db7.High()
-		l.pulseEnable()
+		l.pulseEnable(true)
 		db7.Input()
 		if db7.Read() == rpio.Low {
 			break
@@ -170,24 +205,31 @@ func (l *LCD) waitUntilFree() {
 }
 
 func (l *LCD) execInstruction(ins instruction, data byte) {
-	l.waitUntilFree()
 	l.pins.registerSelect.Low()
 	data = byte(ins) | data
 	l.writeRaw(data)
 }
 
-func (l *LCD) writeData(data byte) {
-	l.waitUntilFree()
+// Write writes data to the current address
+func (l *LCD) Write(data ...byte) {
 	l.pins.registerSelect.High()
-	l.writeRaw(data)
+	l.writeRaw(data...)
 }
 
-func (l *LCD) writeRaw(data byte) {
-	if len(l.pins.data) == 8 {
-		l.write8Bit(data)
-		return
+// WriteString writes string data to the current address
+func (l *LCD) WriteString(data string) {
+	l.pins.registerSelect.High()
+	l.writeRaw([]byte(data)...)
+}
+
+func (l *LCD) writeRaw(data ...byte) {
+	for _, b := range data {
+		if len(l.pins.data) == 8 {
+			l.write8Bit(b)
+			return
+		}
+		l.write4Bit(b)
 	}
-	l.write4Bit(data)
 }
 
 func (l *LCD) write4Bit(data byte) {
@@ -198,7 +240,7 @@ func (l *LCD) write4Bit(data byte) {
 			pin.Low()
 		}
 	}
-	l.pulseEnable()
+	l.pulseEnable(false)
 	for i, pin := range l.pins.data {
 		if data&(1<<i) > 0 {
 			pin.High()
@@ -206,7 +248,18 @@ func (l *LCD) write4Bit(data byte) {
 			pin.Low()
 		}
 	}
-	l.pulseEnable()
+	l.pulseEnable(true)
+}
+
+func (l *LCD) write4BitHigh(data byte) {
+	for i, pin := range l.pins.data {
+		if data&(1<<(i+4)) > 0 {
+			pin.High()
+		} else {
+			pin.Low()
+		}
+	}
+	l.pulseEnable(true)
 }
 
 func (l *LCD) write8Bit(data byte) {
@@ -217,16 +270,35 @@ func (l *LCD) write8Bit(data byte) {
 			pin.Low()
 		}
 	}
-	l.pulseEnable()
+	l.pulseEnable(true)
 }
 
-func (l *LCD) pulseEnable() {
-	time.Sleep(time.Nanosecond * 500)
+func (l *LCD) pulseEnable(withExecDelay bool) {
+	time.Sleep(time.Microsecond)
 	l.pins.enable.High()
-	time.Sleep(time.Nanosecond * 500)
+	time.Sleep(time.Microsecond)
 	l.pins.enable.Low()
+	if withExecDelay {
+		l.waitUntilFree()
+	}
 }
 
-func (l *LCD) WriteLines(lines ...string) {
-	l.writeData(0x65)
+func (l *LCD) WriteTopLine(text string) {
+	l.execInstruction(insSetDDRAMAddress, addrLine1)
+	for pos, c := range []byte(text) {
+		if pos == 16 {
+			break
+		}
+		l.Write(c)
+	}
+}
+
+func (l *LCD) WriteBottomLine(text string) {
+	l.execInstruction(insSetDDRAMAddress, addrLine2)
+	for pos, c := range []byte(text) {
+		if pos == 16 {
+			break
+		}
+		l.Write(c)
+	}
 }
