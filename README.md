@@ -35,4 +35,5 @@ func main() {
 ## TODO
 
 - Add support for custom characters
+- Virtual LCD
 
