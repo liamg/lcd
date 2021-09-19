@@ -48,7 +48,7 @@ func (l *LCD) WriteLine(line uint8, text string) {
 	l.execInstruction(insSetDDRAMAddress, l.addressForLine(line))
 	text = fmt.Sprintf(fmt.Sprintf("%% -%ds", l.columns), text)
 	for pos, c := range []byte(text) {
-		if pos == 16 {
+		if pos == int(l.columns) {
 			break
 		}
 		l.Write(c)
