@@ -47,7 +47,7 @@ func (l *LCD) enableChange(output, state bool) {
 		return
 	}
 
-	if time.Since(l.enableHighTime) < time.Microsecond*40 {
+	if time.Since(l.enableHighTime) < time.Microsecond {
 		return
 	}
 
