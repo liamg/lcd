@@ -2,7 +2,7 @@
 
 A Go module for driving common LCD devices (those using the HD44780 controller or similar.)
 
-Built for Raspberry Pi, but it should work with any other device where you can use an implementation of the `lcd.Pin` interface.
+Built for Raspberry Pi, but it should work with any other device where you can use an implementation of the [`lcd.Pin`](https://github.com/liamg/lcd/blob/main/pin.go#L3-L7) interface.
 
 ## Example
 
