@@ -1,4 +1,4 @@
-# lcd1602
+# lcd
 
 A Go module for driving common LCD devices (those using the HD44780 controller or similar.)
 
