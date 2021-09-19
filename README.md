@@ -34,3 +34,7 @@ func main() {
 
 ![Demo](demo.png)
 
+## TODO
+
+- Add support for custom characters
+
