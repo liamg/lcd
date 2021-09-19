@@ -32,6 +32,10 @@ func main() {
 
 ![Demo](demo.png)
 
+## Now with custom character support!
+
+![Custom characters](custom.png)
+
 ## TODO
 
 - Virtual LCD
