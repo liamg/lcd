@@ -1,11 +1,6 @@
-package lcd1602
+package lcd
 
 import "time"
-
-const (
-	addrLine1 = 0x00
-	addrLine2 = 0x40
-)
 
 const (
 	timeExecutionDelay = time.Microsecond * 80

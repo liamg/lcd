@@ -1,4 +1,4 @@
-package lcd1602
+package lcd
 
 type entryMode struct {
 	Increment bool

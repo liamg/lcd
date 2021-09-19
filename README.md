@@ -1,8 +1,8 @@
 # lcd1602
 
-A Go module for driving LCD1602 devices.
+A Go module for driving common LCD devices (those using the HD44780 controller or similar.)
 
-Built for Raspberry Pi, but it should work with any other device where you can use an implementation of the `lcd1602.Pin` interface.
+Built for Raspberry Pi, but it should work with any other device where you can use an implementation of the `lcd.Pin` interface.
 
 ## Example
 
@@ -10,9 +10,7 @@ Built for Raspberry Pi, but it should work with any other device where you can u
 package main
 
 import (
-	"time"
-
-	"github.com/liamg/lcd1602"
+	"github.com/liamg/lcd"
 	"github.com/stianeikeland/go-rpio/v4"
 )
 
@@ -21,14 +19,14 @@ func main() {
 	_ = rpio.Open()
 	defer rpio.Close()
 
-	lcd, _ := lcd1602.Connect(
+	lcd, _ := lcd.New1602(
 		rpio.Pin(24),                                         // RS
 		rpio.Pin(25),                                         // E
 		rpio.Pin(5), rpio.Pin(6), rpio.Pin(13), rpio.Pin(19), // DATA
 	)
 
-	lcd.WriteTopLine("Hello World!")
-	lcd.WriteBottomLine(":)")
+	lcd.WriteLine(0, "Hello World!")
+	lcd.WriteLine(1, ":)")
 }
 ```
 

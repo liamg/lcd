@@ -1,4 +1,4 @@
-package lcd1602
+package lcd
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 )
 
 type LCD struct {
+	columns     uint8
+	lines       uint8
 	displayMode displayMode
 	entryMode   entryMode
 	pins        pins
@@ -25,17 +27,13 @@ func (l *LCD) Write(data ...byte) {
 
 // MoveTo relocates the cursor to the given position
 func (l *LCD) MoveTo(line uint8, col uint8) error {
-	if col >= 16 {
-		return fmt.Errorf("column number must be in the range 0-15")
+	if col >= l.columns {
+		return fmt.Errorf("column number must be in the range 0-%d", l.columns-1)
 	}
-	if line > 1 {
-		return fmt.Errorf("line number must be in the range 0-1")
+	if line >= l.lines {
+		return fmt.Errorf("line number must be in the range 0-%d", l.lines-1)
 	}
-	var address byte
-	if line == 1 {
-		address = addrLine2
-	}
-	l.setDDRAMAddress(address + col)
+	l.setDDRAMAddress(l.addressForLine(line) + col)
 	return nil
 }
 
@@ -45,22 +43,10 @@ func (l *LCD) WriteString(data string) {
 	l.writeRaw([]byte(data)...)
 }
 
-// WriteTopLine writes a string to the top line of the display. Existing content will be removed.
-func (l *LCD) WriteTopLine(text string) {
-	l.execInstruction(insSetDDRAMAddress, addrLine1)
-	text = fmt.Sprintf("% -16s", text)
-	for pos, c := range []byte(text) {
-		if pos == 16 {
-			break
-		}
-		l.Write(c)
-	}
-}
-
-// WriteBottomLine writes a string to the top line of the display. Existing content will be removed.
-func (l *LCD) WriteBottomLine(text string) {
-	l.execInstruction(insSetDDRAMAddress, addrLine2)
-	text = fmt.Sprintf("% -16s", text)
+// WriteLine writes a string to the given line of the display. Existing line content will be removed.
+func (l *LCD) WriteLine(line uint8, text string) {
+	l.execInstruction(insSetDDRAMAddress, l.addressForLine(line))
+	text = fmt.Sprintf(fmt.Sprintf("%% -%ds", l.columns), text)
 	for pos, c := range []byte(text) {
 		if pos == 16 {
 			break

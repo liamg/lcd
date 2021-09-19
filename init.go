@@ -1,4 +1,4 @@
-package lcd1602
+package lcd
 
 import (
 	"fmt"
@@ -50,14 +50,16 @@ func (l *LCD) init() {
 	l.On()
 }
 
-// Connect opens communication with the LCD for further instruction
-func Connect(registerSelect, enable Pin, data ...Pin) (*LCD, error) {
+// New opens communication with the LCD for further instruction
+func New(columns, lines uint8, registerSelect, enable Pin, data ...Pin) (*LCD, error) {
 
 	if len(data) != 4 && len(data) != 8 {
 		return nil, fmt.Errorf("you must specify either 4 or 8 data pins")
 	}
 
 	lcd := &LCD{
+		columns: columns,
+		lines:   lines,
 		pins: pins{
 			registerSelect: registerSelect,
 			enable:         enable,
