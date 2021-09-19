@@ -2,7 +2,7 @@
 
 A Go module for driving LCD1602 devices.
 
-![Demo](demo.png)
+Built for Raspberry Pi, but it should work with any other device where you can use an implementation of the `lcd1602.Pin` interface.
 
 ## Example
 
@@ -32,4 +32,5 @@ func main() {
 }
 ```
 
+![Demo](demo.png)
 
