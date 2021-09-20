@@ -16,10 +16,13 @@ func main() {
 
 	lcd, err := lcd.New1602(
 		lcd.FontSize5x8,
-		rpio.Pin(24),                                         // RS
-		rpio.Pin(25),                                         // E
-		nil,                                                  // RW
-		rpio.Pin(5), rpio.Pin(6), rpio.Pin(13), rpio.Pin(19), // DATA
+		lcd.PiPin(24), // RS
+		lcd.PiPin(25), // E
+		lcd.PiPin(12), // RW (set this to nil if you don't want to use it)
+		lcd.PiPin(5),  // DB4
+		lcd.PiPin(6),  // DB5
+		lcd.PiPin(13), // DB6
+		lcd.PiPin(19), // DB7
 	)
 	if err != nil {
 		panic(err)

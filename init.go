@@ -2,6 +2,7 @@ package lcd
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -58,12 +59,33 @@ func (l *LCD) init() {
 	l.On()
 }
 
+func (l *LCD) Close() {
+	l.pins.readWrite.Low()
+	l.pins.registerSelect.Low()
+	for _, pin := range l.pins.data {
+		pin.Low()
+	}
+	newMu.Lock()
+	defer newMu.Unlock()
+	newCount--
+	if newCount == 0 {
+		closeGPIO()
+	}
+}
+
+var newMu sync.Mutex
+var newCount int
+
 // New opens communication with the LCD for further instruction
 func New(columns, lines uint8, fontSize FontSize, registerSelect, enable, readWrite Pin, data ...Pin) (*LCD, error) {
 
 	if len(data) != 4 && len(data) != 8 {
 		return nil, fmt.Errorf("you must specify either 4 or 8 data pins")
 	}
+
+	newMu.Lock()
+	defer newMu.Unlock()
+	newCount++
 
 	lcd := &LCD{
 		columns:  columns,

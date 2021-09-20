@@ -16,13 +16,9 @@ package main
 
 import (
 	"github.com/liamg/lcd"
-	"github.com/stianeikeland/go-rpio/v4"
 )
 
 func main() {
-
-	_ = rpio.Open()
-	defer rpio.Close()
 
 	lcd, _ := lcd.New1602(
 		lcd.FontSize5x8,

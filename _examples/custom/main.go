@@ -2,26 +2,19 @@ package main
 
 import (
 	"github.com/liamg/lcd"
-	"github.com/stianeikeland/go-rpio/v4"
 )
 
 func main() {
-
-	if err := rpio.Open(); err != nil {
-		panic(err)
-	}
-	defer rpio.Close()
-
-	rw := lcd.PiPin(12)
-	rw.Output()
-	rw.Low()
 
 	lcd, err := lcd.New1602(
 		lcd.FontSize5x8,
 		lcd.PiPin(24), // RS
 		lcd.PiPin(25), // E
-		nil,
-		lcd.PiPin(5), lcd.PiPin(6), lcd.PiPin(13), lcd.PiPin(19), // DATA
+		lcd.PiPin(12), // RW (set this to nil if you don't want to use it)
+		lcd.PiPin(5),  // DB4
+		lcd.PiPin(6),  // DB5
+		lcd.PiPin(13), // DB6
+		lcd.PiPin(19), // DB7
 	)
 	if err != nil {
 		panic(err)

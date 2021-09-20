@@ -1,12 +1,39 @@
 package lcd
 
-import "github.com/stianeikeland/go-rpio/v4"
+import (
+	"sync"
+
+	"github.com/stianeikeland/go-rpio/v4"
+)
 
 type piPin struct {
 	inner rpio.Pin
 }
 
+var gpioLock sync.Mutex
+var gpioOpen bool
+
+func openGPIO() {
+	gpioLock.Lock()
+	defer gpioLock.Unlock()
+	if gpioOpen {
+		return
+	}
+	_ = rpio.Open()
+	gpioOpen = true
+}
+
+func closeGPIO() {
+	gpioLock.Lock()
+	defer gpioLock.Unlock()
+	if !gpioOpen {
+		return
+	}
+	_ = rpio.Close()
+}
+
 func PiPin(p uint8) Pin {
+	openGPIO()
 	return &piPin{
 		inner: rpio.Pin(p),
 	}
