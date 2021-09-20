@@ -91,6 +91,7 @@ func (l *LCD) wait(allowBF bool) {
 		return
 	}
 
+	l.pins.registerSelect.Low()
 	l.pins.readWrite.High()
 	defer l.pins.readWrite.Low()
 	l.pins.setDataInput()
