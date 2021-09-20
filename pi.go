@@ -29,6 +29,7 @@ func closeGPIO() {
 	if !gpioOpen {
 		return
 	}
+	gpioOpen = false
 	_ = rpio.Close()
 }
 
