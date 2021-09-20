@@ -22,10 +22,13 @@ func main() {
 
 	lcd, _ := lcd.New1602(
 		lcd.FontSize5x8,
-		lcd.PiPin(24),                                            // RS
-		lcd.PiPin(25),                                            // E
-		lcd.PiPin(12),                                            // RW
-		lcd.PiPin(5), lcd.PiPin(6), lcd.PiPin(13), lcd.PiPin(19), // DATA
+		lcd.PiPin(24), // RS
+		lcd.PiPin(25), // E
+		lcd.PiPin(12), // RW
+		lcd.PiPin(5),  // DB4
+		lcd.PiPin(6),  // DB5
+		lcd.PiPin(13), // DB6
+		lcd.PiPin(19), // DB7
 	)
 	defer lcd.Close()
 
@@ -36,7 +39,4 @@ func main() {
 
 ![Demo](demo.png)
 
-### Custom characters
-
-![Custom characters](custom.png)
 
