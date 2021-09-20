@@ -15,8 +15,10 @@ func main() {
 	defer rpio.Close()
 
 	lcd, err := lcd.New1602(
+		lcd.FontSize5x8,
 		rpio.Pin(24),                                         // RS
 		rpio.Pin(25),                                         // E
+		nil,                                                  // RW
 		rpio.Pin(5), rpio.Pin(6), rpio.Pin(13), rpio.Pin(19), // DATA
 	)
 	if err != nil {
