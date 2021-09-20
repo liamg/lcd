@@ -27,6 +27,15 @@ func (p *Pin) Low() {
 	p.change()
 }
 
+func (p *Pin) Input() {
+	p.output = false
+	p.change()
+}
+
+func (p *Pin) Read() bool {
+	return p.state
+}
+
 func (p *Pin) change() {
 	if p.onChange == nil {
 		return

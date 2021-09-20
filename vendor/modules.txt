@@ -4,6 +4,11 @@ github.com/davecgh/go-spew/spew
 # github.com/pmezard/go-difflib v1.0.0
 ## explicit
 github.com/pmezard/go-difflib/difflib
+# github.com/stianeikeland/go-rpio v4.2.0+incompatible
+## explicit
+# github.com/stianeikeland/go-rpio/v4 v4.5.1
+## explicit; go 1.15
+github.com/stianeikeland/go-rpio/v4
 # github.com/stretchr/testify v1.7.0
 ## explicit; go 1.13
 github.com/stretchr/testify/assert

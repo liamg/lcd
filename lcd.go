@@ -8,6 +8,7 @@ import (
 type LCD struct {
 	columns     uint8
 	lines       uint8
+	fontSize    FontSize
 	displayMode displayMode
 	entryMode   entryMode
 	pins        pins
