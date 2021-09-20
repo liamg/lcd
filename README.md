@@ -43,6 +43,3 @@ func main() {
 
 ![Custom characters](custom.png)
 
-## TODO
-
-- BF checking: http://www.matidavid.com/pic/LCD%20interfacing/busyflag.htm
