@@ -27,6 +27,7 @@ func main() {
 		lcd.PiPin(12),                                            // RW
 		lcd.PiPin(5), lcd.PiPin(6), lcd.PiPin(13), lcd.PiPin(19), // DATA
 	)
+	defer lcd.Close()
 
 	lcd.WriteLine(0, "Hello World!")
 	lcd.WriteLine(1, ":)")

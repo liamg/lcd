@@ -27,6 +27,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer lcd.Close()
 
 	lcd.WriteLine(0, "Time:")
 	for {
