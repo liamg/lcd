@@ -26,10 +26,10 @@ func main() {
 
 	lcd, _ := lcd.New1602(
 		lcd.FontSize5x8,
-		rpio.Pin(24),                                         // RS
-		rpio.Pin(25),                                         // E
-		rpio.Pin(12),                                         // RW
-		rpio.Pin(5), rpio.Pin(6), rpio.Pin(13), rpio.Pin(19), // DATA
+		lcd.PiPin(24),                                            // RS
+		lcd.PiPin(25),                                            // E
+		lcd.PiPin(12),                                            // RW
+		lcd.PiPin(5), lcd.PiPin(6), lcd.PiPin(13), lcd.PiPin(19), // DATA
 	)
 
 	lcd.WriteLine(0, "Hello World!")
