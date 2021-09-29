@@ -60,7 +60,9 @@ func (l *LCD) init() {
 }
 
 func (l *LCD) Close() {
-	l.pins.readWrite.Low()
+	if l.pins.readWrite == nil {
+		l.pins.readWrite.Low()
+	}
 	l.pins.registerSelect.Low()
 	for _, pin := range l.pins.data {
 		pin.Low()
